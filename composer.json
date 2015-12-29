@@ -1,0 +1,36 @@
+{
+    "name": "jadddp/code-quality-tools",
+    "type": "library",
+    "description": "A PHP code quality tools.",
+    "keywords": ["quality", "code", "php-cs-fixer", "phpcs", "phpmd", "phpunit"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Karel Osorio",
+            "email": "osorioramirez@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.5.0",
+        "squizlabs/php_codesniffer": "@stable",
+        "fabpot/php-cs-fixer": "@stable",
+        "phpunit/phpunit": "~4.2"
+    },
+    "autoload": {
+        "psr-0": { "CodeQualityTool": "" }
+    },
+    "config": {
+        "bin-dir": "bin"
+    },
+    "bin": [
+        "pre-commit"
+    ],
+    "scripts": {
+        "post-install-cmd": [
+            "CodeQualityTool::checkHooks"
+        ],
+        "post-update-cmd": [
+            "CodeQualityTool::checkHooks"
+        ]
+    }
+}

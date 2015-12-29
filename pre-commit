@@ -1,0 +1,10 @@
+#!/usr/bin/env php
+
+<?php
+
+require_once __DIR__ . '/CodeQualityTool.php';
+
+$application = new CodeQualityTool();
+$application->run($input);
+
+throw new \Exception('ok');

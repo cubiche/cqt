@@ -1,0 +1,1 @@
+# Just Another DDD Project - Code Quality tools
