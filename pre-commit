@@ -1,6 +1,7 @@
 #!/usr/bin/env php
 
 <?php
+throw new \Exception('ok');
 
 require_once __DIR__ . '/CodeQualityTool.php';
 
