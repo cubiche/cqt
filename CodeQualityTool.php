@@ -169,7 +169,7 @@ class CodeQualityTool extends Application
             if (!preg_match($needle, $file)) {
                 continue;
             }
-            $processBuilder = new ProcessBuilder(['php', __DIR__.'/bin/phpmd', $file, 'text', 'controversial']);
+            $processBuilder = new ProcessBuilder(['php', 'bin/phpmd', $file, 'text', 'controversial']);
             $processBuilder->setWorkingDirectory($rootPath);
             $process = $processBuilder->getProcess();
             $process->run();
@@ -191,7 +191,7 @@ class CodeQualityTool extends Application
      */
     private function unitTests()
     {
-        $processBuilder = new ProcessBuilder(array('php', __DIR__.'/bin/phpunit', '--colors'));
+        $processBuilder = new ProcessBuilder(array('php', 'bin/phpunit', '--colors'));
         $processBuilder->setWorkingDirectory(getcwd());
         $processBuilder->setTimeout(3600);
         $phpunit = $processBuilder->getProcess();
@@ -223,7 +223,7 @@ class CodeQualityTool extends Application
             ';
             $processBuilder = new ProcessBuilder(
                 array(
-                'php', __DIR__.'/bin/php-cs-fixer', '--dry-run', '--verbose', 'fix', $file, '--fixers='.$fixers,
+                'php', 'bin/php-cs-fixer', '--dry-run', '--verbose', 'fix', $file, '--fixers='.$fixers,
                 )
             );
             $processBuilder->setWorkingDirectory(getcwd());
@@ -253,7 +253,7 @@ class CodeQualityTool extends Application
             if (!preg_match($needle, $file)) {
                 continue;
             }
-            $processBuilder = new ProcessBuilder(array('php', __DIR__.'/bin/phpcs', '--standard=PSR2', $file));
+            $processBuilder = new ProcessBuilder(array('php', 'bin/phpcs', '--standard=PSR2', $file));
             $processBuilder->setWorkingDirectory(getcwd());
             $phpCsFixer = $processBuilder->getProcess();
             $phpCsFixer->run(
