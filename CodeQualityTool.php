@@ -3,7 +3,6 @@
 /**
  * This file is part of the Jadddp/code-quality-tools project.
  */
-require_once __DIR__.'/vendor/autoload.php';
 
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
