@@ -279,17 +279,17 @@ class CodeQualityTool extends Application
     {
         $io = $event->getIO();
 
-        if (!is_dir(__DIR__.'/.git/hooks')) {
+        if (!is_dir(getcwd().'/.git/hooks')) {
             $io->write(
                 '
-            <error>The .git/hooks directory does not exist, make a git pull to update your repository</error>
+            <error>The .git/hooks directory does not exist, execute git init</error>
             '
             );
 
             return;
         }
 
-        $gitPath = __DIR__.'/.git/hooks/pre-commit';
+        $gitPath = getcwd().'/.git/hooks/pre-commit';
         $docPath = __DIR__.'/pre-commit';
         $gitHook = @file_get_contents($gitPath);
         $docHook = @file_get_contents($docPath);
