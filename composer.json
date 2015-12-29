@@ -14,6 +14,7 @@
         "php": ">=5.5.0",
         "squizlabs/php_codesniffer": "@stable",
         "fabpot/php-cs-fixer": "@stable",
+        "phpmd/phpmd" : "@stable",
         "phpunit/phpunit": "~4.2"
     },
     "autoload": {
@@ -27,10 +28,12 @@
     ],
     "scripts": {
         "post-install-cmd": [
-            "CodeQualityTool::checkHooks"
+            "CodeQualityTool::checkHooks",
+            "chmod +x pre-commit"
         ],
         "post-update-cmd": [
-            "CodeQualityTool::checkHooks"
+            "CodeQualityTool::checkHooks",
+            "chmod +x pre-commit"
         ]
     }
 }

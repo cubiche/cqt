@@ -2,9 +2,13 @@
 
 <?php
 
-require_once __DIR__ . '/CodeQualityTool.php';
+/**
+ * This file is part of the Jadddp/code-quality-tools project.
+ */
+ 
+set_time_limit(0);
+
+require_once __DIR__.'/CodeQualityTool.php';
 
 $application = new CodeQualityTool();
 $application->run($input);
-
-throw new \Exception('ok');
