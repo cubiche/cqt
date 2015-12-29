@@ -16,4 +16,4 @@ if (file_exists($a = __DIR__.'/../../autoload.php')) {
 }
 
 $application = new CodeQualityTool();
-$application->run($input);
+$application->run();
