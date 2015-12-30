@@ -279,11 +279,7 @@ class CodeQualityTool extends Application
         $io = $event->getIO();
 
         if (!is_dir(getcwd().'/.git/hooks')) {
-            $io->write(
-                '
-            <error>The .git/hooks directory does not exist, execute git init</error>
-            '
-            );
+            $io->write('<error>The .git/hooks directory does not exist, execute git init</error>');
 
             return;
         }
