@@ -1,1 +1,2 @@
-# Just Another DDD Project - Code Quality tools
+# Just Another DDD Project - Code Quality Tools
+Git `pre-commit` hook based on on `pre-commit` hook of [Carlos Buenosvinos's post](http://carlosbuenosvinos.com/write-your-git-hooks-in-php-and-keep-them-under-git-control/).

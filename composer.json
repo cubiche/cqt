@@ -2,7 +2,7 @@
     "name": "jadddp/code-quality-tools",
     "type": "library",
     "description": "A PHP code quality tools.",
-    "keywords": ["quality", "code", "php-cs-fixer", "phpcs", "phpmd", "phpunit"],
+    "keywords": ["quality", "code", "php-cs-fixer", "phpcs", "phpmd", "phpunit", "git hook"],
     "license": "MIT",
     "authors": [
         {
