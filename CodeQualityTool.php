@@ -87,7 +87,7 @@ class CodeQualityTool extends Application
     /**
      * @param array $files
      */
-    private function checkComposer($files)
+    private function checkComposer(array $files)
     {
         $composerJsonDetected = false;
         $composerLockDetected = false;
@@ -110,7 +110,7 @@ class CodeQualityTool extends Application
     }
 
     /**
-     * @return OutputInterface
+     * @return array
      */
     protected function extractCommitedFiles()
     {
@@ -118,7 +118,7 @@ class CodeQualityTool extends Application
         $rc = 0;
         exec('git rev-parse --verify HEAD 2> /dev/null', $output, $rc);
         $against = '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
-        if ($rc == 0) {
+        if ($rc === 0) {
             $against = 'HEAD';
         }
         exec("git diff-index --cached --name-status $against | egrep '^(A|M)' | awk '{print $2;}'", $output);
@@ -131,7 +131,7 @@ class CodeQualityTool extends Application
      *
      * @return bool
      */
-    protected function phpLint($files)
+    protected function phpLint(array $files)
     {
         $needle = '/(\.php)|(\.inc)$/';
         $succeed = true;
@@ -159,7 +159,7 @@ class CodeQualityTool extends Application
      *
      * @return bool
      */
-    protected function phPmd($files)
+    protected function phPmd(array $files)
     {
         $needle = self::PHP_FILES_IN_SRC;
         $succeed = true;
@@ -289,14 +289,17 @@ class CodeQualityTool extends Application
         $gitHook = @file_get_contents($gitPath);
         $docHook = @file_get_contents($docPath);
         if ($gitHook !== $docHook) {
-            self::createSymlink($event, $gitPath, $docPath);
+            self::createSymlink($gitPath, $docPath);
         }
     }
 
     /**
-     * @param Event $event
+     * @param string $symlinkTarget
+     * @param string $symlinkName
+     *
+     * @throws \Exception
      */
-    private static function createSymlink(Event $event, $symlinkTarget, $symlinkName)
+    private static function createSymlink($symlinkTarget, $symlinkName)
     {
         if (!@readlink($symlinkName)) {
             $processBuilder = new ProcessBuilder(array('rm', '-rf', $symlinkTarget));
