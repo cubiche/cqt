@@ -104,8 +104,6 @@ class CodeQualityTool extends Application
     }
 
     /**
-     * @param array $files
-     *
      * @return bool
      */
     protected function phpLint()
@@ -237,7 +235,7 @@ class CodeQualityTool extends Application
         }
 
         $gitPath = getcwd().'/.git/hooks/pre-commit';
-        $docPath = __DIR__.'/pre-commit';
+        $docPath = getcwd().'/bin/pre-commit';
         $gitHook = @file_get_contents($gitPath);
         $docHook = @file_get_contents($docPath);
         if ($gitHook !== $docHook) {
