@@ -15,6 +15,7 @@ use Composer\Script\Event;
  * CodeQualityTool.
  *
  * @author Karel Osorio Ramírez <osorioramirez@gmail.com>
+ * @author Ivannis Suárez Jérez <ivannis.suarez@gmail.com>
  */
 class CodeQualityTool extends Application
 {
