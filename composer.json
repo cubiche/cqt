@@ -1,5 +1,5 @@
 {
-    "name": "jadddp/code-quality-tools",
+    "name": "cubiche/cqt",
     "type": "library",
     "description": "A PHP code quality tools.",
     "keywords": ["quality", "code", "php-cs-fixer", "phpcs", "phpmd", "phpunit", "git hook"],
@@ -8,6 +8,10 @@
         {
             "name": "Karel Osorio",
             "email": "osorioramirez@gmail.com"
+        },
+        {
+            "name": "Ivannis Suárez",
+            "email": "ivannis.suarez@gmail.com"
         }
     ],
     "require": {
@@ -18,22 +22,26 @@
         "phpunit/phpunit": "~4.2"
     },
     "autoload": {
-        "psr-0": { "CodeQualityTool": "" }
+        "psr-0": {
+             "Cubiche\\": "src/"
+        }
     },
     "config": {
         "bin-dir": "bin"
     },
     "bin": [
-        "pre-commit"
+        "pre-commit","php-cs-fix-commit"
     ],
     "scripts": {
         "post-install-cmd": [
-            "CodeQualityTool::checkHooks",
-            "chmod +x pre-commit"
+            "Cubiche\\Tools\\CodeQualityTool::checkHooks",
+            "chmod +x pre-commit",
+            "chmod +x php-cs-fix-commit"
         ],
         "post-update-cmd": [
-            "CodeQualityTool::checkHooks",
-            "chmod +x pre-commit"
+            "Cubiche\\Tools\\CodeQualityTool::checkHooks",
+            "chmod +x pre-commit",
+            "chmod +x php-cs-fix-commit"
         ]
     }
 }

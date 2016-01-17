@@ -1,8 +1,10 @@
 <?php
 
 /**
- * This file is part of the Jadddp/code-quality-tools project.
+ * This file is part of the Cubiche/cqt project.
  */
+namespace Cubiche\Tools;
+
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\ProcessBuilder;
@@ -26,11 +28,9 @@ class CodeQualityTool extends Application
      */
     protected $input;
 
-    const PHP_FILES_IN_SRC = '/^src\/(.*)(\.php)$/';
-
     public function __construct()
     {
-        parent::__construct('Jadddp Code Quality Tool', '1.0.0');
+        parent::__construct('Cubiche Code Quality Tool', '1.0.0');
     }
 
     /**
@@ -50,29 +50,26 @@ class CodeQualityTool extends Application
             )
         );
 
-        $output->writeln('<info>Fetching files</info>');
-        $files = $this->extractCommitedFiles();
-
         $output->writeln('<info>Check composer</info>');
-        $this->checkComposer($files);
+        $this->checkComposer();
 
         $output->writeln('<info>Running PHPLint</info>');
-        if (!$this->phpLint($files)) {
+        if (!$this->phpLint()) {
             throw new \Exception('There are some PHP syntax errors!');
         }
 
         $output->writeln('<info>Checking code style</info>');
-        if (!$this->codeStyle($files)) {
+        if (!$this->codeStyle()) {
             throw new \Exception(sprintf('There are coding standards violations!'));
         }
 
         $output->writeln('<info>Checking code style with PHPCS</info>');
-        if (!$this->codeStylePsr($files)) {
+        if (!$this->codeStylePsr()) {
             throw new \Exception(sprintf('There are PHPCS coding standards violations!'));
         }
 
         $output->writeln('<info>Checking code mess with PHPMD</info>');
-        if (!$this->phPmd($files)) {
+        if (!$this->phPmd()) {
             throw new \Exception(sprintf('There are PHPMD violations!'));
         }
 
@@ -84,14 +81,11 @@ class CodeQualityTool extends Application
         $output->writeln('<info>Good job dude!</info>');
     }
 
-    /**
-     * @param array $files
-     */
-    private function checkComposer(array $files)
+    private function checkComposer()
     {
         $composerJsonDetected = false;
         $composerLockDetected = false;
-        foreach ($files as $file) {
+        foreach (GitUtils::extractCommitedFiles() as $file) {
             if ($file === 'composer.json') {
                 $composerJsonDetected = true;
             }
@@ -101,29 +95,11 @@ class CodeQualityTool extends Application
         }
         if ($composerJsonDetected && !$composerLockDetected) {
             $this->output->writeln(
-                '
-                    <bg=yellow;fg=black>
-                    composer.lock must be commited if composer.json is modified!
-                    </bg=yellow;fg=black>'
+                '<bg=yellow;fg=black>
+                 composer.lock must be commited if composer.json is modified!
+                 </bg=yellow;fg=black>'
             );
         }
-    }
-
-    /**
-     * @return array
-     */
-    protected function extractCommitedFiles()
-    {
-        $output = array();
-        $rc = 0;
-        exec('git rev-parse --verify HEAD 2> /dev/null', $output, $rc);
-        $against = '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
-        if ($rc === 0) {
-            $against = 'HEAD';
-        }
-        exec("git diff-index --cached --name-status $against | egrep '^(A|M)' | awk '{print $2;}'", $output);
-
-        return $output;
     }
 
     /**
@@ -131,23 +107,18 @@ class CodeQualityTool extends Application
      *
      * @return bool
      */
-    protected function phpLint(array $files)
+    protected function phpLint()
     {
         $needle = '/(\.php)|(\.inc)$/';
         $succeed = true;
-        foreach ($files as $file) {
-            if (!preg_match($needle, $file)) {
-                continue;
-            }
+        foreach (GitUtils::commitedFiles($needle) as $file) {
             $processBuilder = new ProcessBuilder(array('php', '-l', $file));
             $process = $processBuilder->getProcess();
             $process->run();
             if (!$process->isSuccessful()) {
                 $this->output->writeln($file);
                 $this->output->writeln(sprintf('<error>%s</error>', trim($process->getErrorOutput())));
-                if ($succeed) {
-                    $succeed = false;
-                }
+                $succeed = false;
             }
         }
 
@@ -155,19 +126,13 @@ class CodeQualityTool extends Application
     }
 
     /**
-     * @param array $files
-     *
      * @return bool
      */
-    protected function phPmd(array $files)
+    protected function phPmd()
     {
-        $needle = self::PHP_FILES_IN_SRC;
         $succeed = true;
         $rootPath = realpath(getcwd());
-        foreach ($files as $file) {
-            if (!preg_match($needle, $file)) {
-                continue;
-            }
+        foreach (GitUtils::commitedFiles() as $file) {
             $processBuilder = new ProcessBuilder(['php', 'bin/phpmd', $file, 'text', 'controversial']);
             $processBuilder->setWorkingDirectory($rootPath);
             $process = $processBuilder->getProcess();
@@ -176,9 +141,7 @@ class CodeQualityTool extends Application
                 $this->output->writeln($file);
                 $this->output->writeln(sprintf('<error>%s</error>', trim($process->getErrorOutput())));
                 $this->output->writeln(sprintf('<info>%s</info>', trim($process->getOutput())));
-                if ($succeed) {
-                    $succeed = false;
-                }
+                $succeed = false;
             }
         }
 
@@ -204,35 +167,32 @@ class CodeQualityTool extends Application
     }
 
     /**
-     * @param array $files
-     *
      * @return bool
      */
-    protected function codeStyle(array $files)
+    protected function codeStyle()
     {
         $succeed = true;
-        foreach ($files as $file) {
-            $srcFile = preg_match(self::PHP_FILES_IN_SRC, $file);
-            if (!$srcFile) {
-                continue;
-            }
+        foreach (GitUtils::commitedFiles() as $file) {
             $fixers = '
                 -psr0,eof_ending,indentation,linefeed,lowercase_keywords,trailing_spaces,
                 short_tag,php_closing_tag,extra_empty_lines,elseif,function_declaration
             ';
-            $processBuilder = new ProcessBuilder(
-                array(
-                'php', 'bin/php-cs-fixer', '--dry-run', '--verbose', 'fix', $file, '--fixers='.$fixers,
-                )
-            );
+            $processBuilder = new ProcessBuilder(array(
+                'php',
+                'bin/php-cs-fixer',
+                '--dry-run',
+                '--verbose',
+                'fix',
+                $file,
+                '--fixers='.$fixers,
+            ));
+
             $processBuilder->setWorkingDirectory(getcwd());
             $phpCsFixer = $processBuilder->getProcess();
             $phpCsFixer->run();
             if (!$phpCsFixer->isSuccessful()) {
                 $this->output->writeln(sprintf('<error>%s</error>', trim($phpCsFixer->getOutput())));
-                if ($succeed) {
-                    $succeed = false;
-                }
+                $succeed = false;
             }
         }
 
@@ -240,31 +200,22 @@ class CodeQualityTool extends Application
     }
 
     /**
-     * @param array $files
-     *
      * @return bool
      */
-    private function codeStylePsr(array $files)
+    private function codeStylePsr()
     {
         $succeed = true;
-        $needle = self::PHP_FILES_IN_SRC;
-        foreach ($files as $file) {
-            if (!preg_match($needle, $file)) {
-                continue;
-            }
+        foreach (GitUtils::commitedFiles() as $file) {
             $processBuilder = new ProcessBuilder(array('php', 'bin/phpcs', '--standard=PSR2', $file));
             $processBuilder->setWorkingDirectory(getcwd());
             $phpCsFixer = $processBuilder->getProcess();
-            $phpCsFixer->run(
-                function ($type, $buffer) {
-                    $this->output->write($buffer);
-                }
-            );
+            $phpCsFixer->run(function ($type, $buffer) {
+                $this->output->write($buffer);
+            });
+
             if (!$phpCsFixer->isSuccessful()) {
                 $this->output->writeln(sprintf('<error>%s</error>', trim($phpCsFixer->getOutput())));
-                if ($succeed) {
-                    $succeed = false;
-                }
+                $succeed = false;
             }
         }
 
@@ -306,7 +257,7 @@ class CodeQualityTool extends Application
             $process = $processBuilder->getProcess();
             $process->run();
 
-            if (false === symlink($symlinkName, $symlinkTarget)) {
+            if (symlink($symlinkName, $symlinkTarget) === false) {
                 throw new \Exception('Error occured when trying to create a symlink.');
             }
         }
