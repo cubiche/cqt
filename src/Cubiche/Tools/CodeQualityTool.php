@@ -251,14 +251,12 @@ class CodeQualityTool extends Application
      */
     private static function createSymlink($symlinkTarget, $symlinkName)
     {
-        if (!@readlink($symlinkName)) {
-            $processBuilder = new ProcessBuilder(array('rm', '-rf', $symlinkTarget));
-            $process = $processBuilder->getProcess();
-            $process->run();
-
-            if (symlink($symlinkName, $symlinkTarget) === false) {
-                throw new \Exception('Error occured when trying to create a symlink.');
-            }
-        }
+    	$processBuilder = new ProcessBuilder(array('rm', '-rf', $symlinkTarget));
+    	$process = $processBuilder->getProcess();
+    	$process->run();
+    	
+    	if (symlink($symlinkName, $symlinkTarget) === false) {
+    		throw new \Exception('Error occured when trying to create a symlink.');
+    	}
     }
 }
