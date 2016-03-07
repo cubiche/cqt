@@ -1,15 +1,20 @@
 <?php
 
 /**
- * This file is part of the Cubiche/cqt project.
+ * This file is part of the Cubiche package.
+ *
+ * Copyright (c) Cubiche
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 namespace Cubiche\Tools;
 
+use Composer\Script\Event;
+use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\ProcessBuilder;
-use Symfony\Component\Console\Application;
-use Composer\Script\Event;
 
 /**
  * CodeQualityTool.
@@ -152,9 +157,9 @@ class CodeQualityTool extends Application
      */
     private function unitTests()
     {
-        $processBuilder = new ProcessBuilder(array('php', 'bin/phpunit', '--colors'));
+        $processBuilder = new ProcessBuilder(array('php', 'bin/atoum'));
         $processBuilder->setWorkingDirectory(getcwd());
-        $processBuilder->setTimeout(3600);
+        $processBuilder->setTimeout(null);
         $phpunit = $processBuilder->getProcess();
         $phpunit->run(
             function ($type, $buffer) {
@@ -251,12 +256,12 @@ class CodeQualityTool extends Application
      */
     private static function createSymlink($symlinkTarget, $symlinkName)
     {
-    	$processBuilder = new ProcessBuilder(array('rm', '-rf', $symlinkTarget));
-    	$process = $processBuilder->getProcess();
-    	$process->run();
-    	
-    	if (symlink($symlinkName, $symlinkTarget) === false) {
-    		throw new \Exception('Error occured when trying to create a symlink.');
-    	}
+        $processBuilder = new ProcessBuilder(array('rm', '-rf', $symlinkTarget));
+        $process = $processBuilder->getProcess();
+        $process->run();
+
+        if (symlink($symlinkName, $symlinkTarget) === false) {
+            throw new \Exception('Error occured when trying to create a symlink.');
+        }
     }
 }

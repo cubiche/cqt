@@ -19,7 +19,7 @@
         "squizlabs/php_codesniffer": "@stable",
         "fabpot/php-cs-fixer": "@stable",
         "phpmd/phpmd" : "@stable",
-        "phpunit/phpunit": "~4.2"
+        "atoum/atoum": "~2.5"
     },
     "autoload": {
         "psr-0": {
