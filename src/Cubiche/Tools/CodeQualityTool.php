@@ -157,17 +157,25 @@ class CodeQualityTool extends Application
      */
     private function unitTests()
     {
-        $processBuilder = new ProcessBuilder(array('php', 'bin/atoum'));
-        $processBuilder->setWorkingDirectory(getcwd());
-        $processBuilder->setTimeout(null);
-        $phpunit = $processBuilder->getProcess();
-        $phpunit->run(
-            function ($type, $buffer) {
-                $this->output->write($buffer);
-            }
-        );
+        $files = glob(getcwd()."/.atoum.*");
 
-        return $phpunit->isSuccessful();
+        if (count($files) > 0) {
+            $processBuilder = new ProcessBuilder(array('php', 'bin/atoum'));
+            $processBuilder->setWorkingDirectory(getcwd());
+            $processBuilder->setTimeout(null);
+            $phpunit = $processBuilder->getProcess();
+            $phpunit->run(
+                function ($type, $buffer) {
+                    $this->output->write($buffer);
+                }
+            );
+
+            return $phpunit->isSuccessful();
+        } else {
+            $this->output->writeln('<comment>There is no tests configuration files</comment>');
+
+            return true;
+        }
     }
 
     /**
