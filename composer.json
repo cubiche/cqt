@@ -16,10 +16,10 @@
     ],
     "require": {
         "php": ">=5.5.0",
-        "squizlabs/php_codesniffer": "@stable",
-        "fabpot/php-cs-fixer": "~1.11",
-        "phpmd/phpmd" : "@stable",
-        "atoum/atoum": "~2.5"
+        "squizlabs/php_codesniffer":    "@stable",
+        "fabpot/php-cs-fixer":          "~1.11",
+        "phpmd/phpmd" :                 "@stable",
+        "atoum/atoum":                  "~3.2"
     },
     "autoload": {
         "psr-0": {

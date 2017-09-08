@@ -1,8 +1,10 @@
-composer.phar
-vendor/
+/vendor
+/bin/
 
-bin/
+/composer.phar
+/composer.lock
 
 .buildpath
 .project
 .settings/
+.idea
