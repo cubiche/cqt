@@ -226,10 +226,12 @@ class CodeQualityTool extends Application
                     }
                 );
 
-                $succeed = $succeed && $test->isSuccessful();
+                if (!$test->isSuccessful()) {
+                    return false;
+                }
             }
 
-            return $succeed;
+            return true;
         } else {
             $this->output->writeln('<comment>There is no tests configuration suites</comment>');
 
