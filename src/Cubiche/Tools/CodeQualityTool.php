@@ -15,6 +15,7 @@ use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\ProcessBuilder;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * CodeQualityTool.
@@ -24,6 +25,8 @@ use Symfony\Component\Process\ProcessBuilder;
  */
 class CodeQualityTool extends Application
 {
+    const CONFIG_FILE = 'quality.yml';
+
     /**
      * @var OutputInterface
      */
@@ -34,9 +37,19 @@ class CodeQualityTool extends Application
      */
     protected $input;
 
+    /**
+     * @var array
+     */
+    protected $config;
+
+    /**
+     * CodeQualityTool constructor.
+     */
     public function __construct()
     {
         parent::__construct('Cubiche Code Quality Tool', '1.0.0');
+
+        $this->config = file_exists(self::CONFIG_FILE) ? Yaml::parse(file_get_contents(self::CONFIG_FILE)) : array();
     }
 
     /**
@@ -48,6 +61,7 @@ class CodeQualityTool extends Application
     {
         $this->input = $input;
         $this->output = $output;
+
         $output->writeln(
             \sprintf(
                 '<fg=white;options=bold;bg=blue>%s %s</fg=white;options=bold;bg=blue>',
@@ -115,8 +129,12 @@ class CodeQualityTool extends Application
     {
         $needle = '/(\.php)|(\.inc)$/';
         $succeed = true;
+        $config = $this->getConfig('phplint', array(
+            'triggered_by' => 'php'
+        ));
+
         foreach (GitUtils::commitedFiles($needle) as $file) {
-            $processBuilder = new ProcessBuilder(array('php', '-l', $file));
+            $processBuilder = new ProcessBuilder(array($config['triggered_by'], '-l', $file));
             $process = $processBuilder->getProcess();
             $process->run();
             if (!$process->isSuccessful()) {
@@ -135,9 +153,16 @@ class CodeQualityTool extends Application
     protected function phPmd()
     {
         $succeed = true;
+        $config = $this->getConfig('phpmd', array(
+            'ruleset' => 'controversial',
+            'triggered_by' => 'php'
+        ));
+
         $rootPath = realpath(getcwd());
         foreach (GitUtils::commitedFiles() as $file) {
-            $processBuilder = new ProcessBuilder(['php', 'bin/phpmd', $file, 'text', 'controversial']);
+            $processBuilder = new ProcessBuilder(
+                array($config['triggered_by'], 'bin/phpmd', $file, 'text', implode(',', $config['ruleset']))
+            );
             $processBuilder->setWorkingDirectory($rootPath);
             $process = $processBuilder->getProcess();
             $process->run();
@@ -157,22 +182,56 @@ class CodeQualityTool extends Application
      */
     private function unitTests()
     {
-        $files = glob(getcwd()."/.atoum.*");
+        $succeed = true;
+        $config = $this->getConfig('test', array(
+            'suites' => array()
+        ));
 
-        if (count($files) > 0) {
-            $processBuilder = new ProcessBuilder(array('php', 'bin/atoum'));
-            $processBuilder->setWorkingDirectory(getcwd());
-            $processBuilder->setTimeout(null);
-            $phpunit = $processBuilder->getProcess();
-            $phpunit->run(
-                function ($type, $buffer) {
-                    $this->output->write($buffer);
+        if (count($config['suites']) > 0) {
+            foreach ($config['suites'] as $suite) {
+                $trigger = isset($suite['triggered_by']) ? $suite['triggered_by'] : 'php';
+
+                $configFile = '.atoum.php';
+                if (isset($suite['config_file']) && $suite['config_file'] !== null) {
+                    $configFile = $suite['config_file'];
                 }
-            );
 
-            return $phpunit->isSuccessful();
+                $bootstrapFile = '.bootstrap.atoum.php';
+                if (isset($suite['bootstrap_file']) && $suite['bootstrap_file'] !== null) {
+                    $bootstrapFile = $suite['bootstrap_file'];
+                }
+
+                $arguments = array(
+                    $trigger,
+                    'bin/atoum',
+                    '-c',
+                    $configFile,
+                    '-bf',
+                    $bootstrapFile,
+                );
+
+                if (isset($suite['directories']) && $suite['directories'] !== null) {
+                    $arguments[] = '-d';
+                    $arguments[] = implode(" ", $suite['directories']);
+                }
+
+                $processBuilder = new ProcessBuilder($arguments);
+                $processBuilder->setWorkingDirectory(getcwd());
+                $processBuilder->setTimeout(null);
+
+                $test = $processBuilder->getProcess();
+                $test->run(
+                    function ($type, $buffer) {
+                        $this->output->write($buffer);
+                    }
+                );
+
+                $succeed = $succeed && $test->isSuccessful();
+            }
+
+            return $succeed;
         } else {
-            $this->output->writeln('<comment>There is no tests configuration files</comment>');
+            $this->output->writeln('<comment>There is no tests configuration suites</comment>');
 
             return true;
         }
@@ -184,13 +243,18 @@ class CodeQualityTool extends Application
     protected function codeStyle()
     {
         $succeed = true;
+        $config = $this->getConfig('phpcsfixer', array(
+            'fixers' => [
+                '-psr0','eof_ending','indentation','linefeed','lowercase_keywords','trailing_spaces',
+                'short_tag','php_closing_tag','extra_empty_lines','elseif','function_declaration'
+            ],
+            'triggered_by' => 'php'
+        ));
+
         foreach (GitUtils::commitedFiles() as $file) {
-            $fixers = '
-                -psr0,eof_ending,indentation,linefeed,lowercase_keywords,trailing_spaces,
-                short_tag,php_closing_tag,extra_empty_lines,elseif,function_declaration
-            ';
+            $fixers = implode(',', $config);
             $processBuilder = new ProcessBuilder(array(
-                'php',
+                $config['triggered_by'],
                 'bin/php-cs-fixer',
                 '--dry-run',
                 '--verbose',
@@ -217,8 +281,15 @@ class CodeQualityTool extends Application
     private function codeStylePsr()
     {
         $succeed = true;
+        $config = $this->getConfig('phpcs', array(
+            'standard' => 'PSR2',
+            'triggered_by' => 'php'
+        ));
+
         foreach (GitUtils::commitedFiles() as $file) {
-            $processBuilder = new ProcessBuilder(array('php', 'bin/phpcs', '--standard=PSR2', $file));
+            $processBuilder = new ProcessBuilder(
+                array($config['triggered_by'], 'bin/phpcs', '--standard='.$config['standard'], $file)
+            );
             $processBuilder->setWorkingDirectory(getcwd());
             $phpCsFixer = $processBuilder->getProcess();
             $phpCsFixer->run(function ($type, $buffer) {
@@ -271,5 +342,16 @@ class CodeQualityTool extends Application
         if (symlink($symlinkName, $symlinkTarget) === false) {
             throw new \Exception('Error occured when trying to create a symlink.');
         }
+    }
+
+    /**
+     * @param string $task
+     * @param array  $defaults
+     *
+     * @return array|mixed
+     */
+    private function getConfig($task, array $defaults = array())
+    {
+        return isset($this->config[$task]) ? $this->config[$task] : $defaults;
     }
 }

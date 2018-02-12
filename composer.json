@@ -15,11 +15,12 @@
         }
     ],
     "require": {
-        "php": ">=5.5.0",
+        "php":                          ">=5.5.0",
         "squizlabs/php_codesniffer":    "@stable",
         "fabpot/php-cs-fixer":          "~1.11",
         "phpmd/phpmd" :                 "@stable",
-        "atoum/atoum":                  "~3.2"
+        "atoum/atoum":                  "~3.2",
+        "symfony/yaml":                 "^3.4"
     },
     "autoload": {
         "psr-0": {

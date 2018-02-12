@@ -1,0 +1,22 @@
+phplint:
+    triggered_by: 'php'
+
+phpcsfixer:
+    fixers: ['-psr0','eof_ending','indentation','linefeed','lowercase_keywords','trailing_spaces','short_tag','php_closing_tag','extra_empty_lines','elseif','function_declaration']
+    triggered_by: 'php'
+
+phpcs:
+    standard: 'PSR2'
+    triggered_by: 'php'
+
+phpmd:
+    ruleset: ['controversial']
+    triggered_by: 'php'
+
+test:
+    suites:
+        default:
+            config_file: ~
+            bootstrap_file: ~
+            directories: ~
+            triggered_by: 'php'
