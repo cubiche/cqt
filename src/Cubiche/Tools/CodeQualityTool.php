@@ -179,16 +179,22 @@ class CodeQualityTool extends Application
     }
 
     /**
+     * @param string $suiteName
+     *
      * @return bool
      */
-    protected function unitTests()
+    protected function unitTests($suiteName = null)
     {
         $config = $this->getConfig('test', array(
             'suites' => array()
         ));
 
         if (count($config['suites']) > 0) {
-            foreach ($config['suites'] as $suite) {
+            foreach ($config['suites'] as $name => $suite) {
+                if ($suiteName !== null && $name !== $suiteName) {
+                    continue;
+                }
+
                 $trigger = isset($suite['triggered_by']) ? $suite['triggered_by'] : 'php';
 
                 $configFile = '.atoum.php';
