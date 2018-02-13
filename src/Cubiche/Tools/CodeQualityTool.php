@@ -240,9 +240,11 @@ class CodeQualityTool extends Application
     }
 
     /**
+     * @param string $directory
+     *
      * @return bool
      */
-    protected function codeStyle()
+    protected function codeStyle($directory = null)
     {
         $succeed = true;
         $config = $this->getConfig('phpcsfixer', array(
@@ -253,24 +255,47 @@ class CodeQualityTool extends Application
             'triggered_by' => 'php'
         ));
 
-        foreach (GitUtils::commitedFiles() as $file) {
-            $fixers = implode(',', $config);
+        $fixers = implode(',', $config['fixers']);
+        if ($directory !== null && is_dir($directory)) {
             $processBuilder = new ProcessBuilder(array(
                 $config['triggered_by'],
                 'bin/php-cs-fixer',
                 '--dry-run',
                 '--verbose',
                 'fix',
-                $file,
+                $directory,
                 '--fixers='.$fixers,
             ));
 
             $processBuilder->setWorkingDirectory(getcwd());
             $phpCsFixer = $processBuilder->getProcess();
             $phpCsFixer->run();
+
             if (!$phpCsFixer->isSuccessful()) {
                 $this->output->writeln(sprintf('<error>%s</error>', trim($phpCsFixer->getOutput())));
-                $succeed = false;
+
+                return false;
+            }
+        } else {
+            foreach (GitUtils::commitedFiles() as $file) {
+                $processBuilder = new ProcessBuilder(array(
+                    $config['triggered_by'],
+                    'bin/php-cs-fixer',
+                    '--dry-run',
+                    '--verbose',
+                    'fix',
+                    $file,
+                    '--fixers='.$fixers,
+                ));
+
+                $processBuilder->setWorkingDirectory(getcwd());
+                $phpCsFixer = $processBuilder->getProcess();
+                $phpCsFixer->run();
+
+                if (!$phpCsFixer->isSuccessful()) {
+                    $this->output->writeln(sprintf('<error>%s</error>', trim($phpCsFixer->getOutput())));
+                    $succeed = false;
+                }
             }
         }
 
@@ -278,9 +303,11 @@ class CodeQualityTool extends Application
     }
 
     /**
+     * @param string $directory
+     *
      * @return bool
      */
-    protected function codeStylePsr()
+    protected function codeStylePsr($directory = null)
     {
         $succeed = true;
         $config = $this->getConfig('phpcs', array(
@@ -288,10 +315,11 @@ class CodeQualityTool extends Application
             'triggered_by' => 'php'
         ));
 
-        foreach (GitUtils::commitedFiles() as $file) {
+        if ($directory !== null && is_dir($directory)) {
             $processBuilder = new ProcessBuilder(
-                array($config['triggered_by'], 'bin/phpcs', '--standard='.$config['standard'], $file)
+                array($config['triggered_by'], 'bin/phpcs', '--standard='.$config['standard'], $directory)
             );
+
             $processBuilder->setWorkingDirectory(getcwd());
             $phpCsFixer = $processBuilder->getProcess();
             $phpCsFixer->run(function ($type, $buffer) {
@@ -300,7 +328,25 @@ class CodeQualityTool extends Application
 
             if (!$phpCsFixer->isSuccessful()) {
                 $this->output->writeln(sprintf('<error>%s</error>', trim($phpCsFixer->getOutput())));
-                $succeed = false;
+
+                return false;
+            }
+        } else {
+            foreach (GitUtils::commitedFiles() as $file) {
+                $processBuilder = new ProcessBuilder(
+                    array($config['triggered_by'], 'bin/phpcs', '--standard='.$config['standard'], $file)
+                );
+
+                $processBuilder->setWorkingDirectory(getcwd());
+                $phpCsFixer = $processBuilder->getProcess();
+                $phpCsFixer->run(function ($type, $buffer) {
+                    $this->output->write($buffer);
+                });
+
+                if (!$phpCsFixer->isSuccessful()) {
+                    $this->output->writeln(sprintf('<error>%s</error>', trim($phpCsFixer->getOutput())));
+                    $succeed = false;
+                }
             }
         }
 
