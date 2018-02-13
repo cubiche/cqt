@@ -54,8 +54,6 @@ class CodeQualityTool extends Application
 
     /**
      * {@inheritdoc}
-     *
-     * @see \Symfony\Component\Console\Application::doRun()
      */
     public function doRun(InputInterface $input, OutputInterface $output)
     {
@@ -101,6 +99,9 @@ class CodeQualityTool extends Application
         $output->writeln('<info>Good job dude!</info>');
     }
 
+    /**
+     * Check composer.json and composer.lock files
+     */
     private function checkComposer()
     {
         $composerJsonDetected = false;
@@ -180,9 +181,8 @@ class CodeQualityTool extends Application
     /**
      * @return bool
      */
-    private function unitTests()
+    protected function unitTests()
     {
-        $succeed = true;
         $config = $this->getConfig('test', array(
             'suites' => array()
         ));
@@ -207,7 +207,7 @@ class CodeQualityTool extends Application
                     '-c',
                     $configFile,
                     '-bf',
-                    $bootstrapFile,
+                    $bootstrapFile
                 );
 
                 if (isset($suite['directories']) && $suite['directories'] !== null) {
@@ -280,7 +280,7 @@ class CodeQualityTool extends Application
     /**
      * @return bool
      */
-    private function codeStylePsr()
+    protected function codeStylePsr()
     {
         $succeed = true;
         $config = $this->getConfig('phpcs', array(
