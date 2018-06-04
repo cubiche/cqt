@@ -1,7 +1,7 @@
 <?php
 
 /**
- * This file is part of the Cubiche package.
+ * This file is part of the Cubiche application.
  *
  * Copyright (c) Cubiche
  *
@@ -10,6 +10,7 @@
  */
 namespace Cubiche\Tools\CodeStyle;
 
+use Cubiche\Tools\ConfigUtils;
 use Symfony\CS\Console\Command\FixCommand;
 use Symfony\CS\Fixer;
 use Symfony\CS\Finder\DefaultFinder;
@@ -31,7 +32,7 @@ class CSFixCommand extends FixCommand
         $finder = DefaultFinder::create();
         $finder->append($this->commitedFiles());
 
-        parent::__construct($fixer, Config::create()->finder($finder));
+        parent::__construct($fixer, Config::create()->finder($finder)->fixers($this->fixers()));
     }
 
     /**
@@ -42,5 +43,20 @@ class CSFixCommand extends FixCommand
         foreach (GitUtils::commitedFiles() as $file) {
             yield new \SplFileInfo($file);
         }
+    }
+
+    /**
+     * @return array
+     */
+    protected function fixers()
+    {
+        $config = ConfigUtils::getConfig('phpcsfixer', array(
+            'fixers' => [
+                '-psr0','eof_ending','indentation','linefeed','lowercase_keywords','trailing_spaces', 'short_tag',
+                'php_closing_tag','extra_empty_lines','elseif','function_declaration', '-phpdoc_scalar', '-phpdoc_types'
+            ]
+        ));
+
+        return $config['fixers'];
     }
 }

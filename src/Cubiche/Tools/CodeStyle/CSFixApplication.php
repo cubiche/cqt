@@ -1,7 +1,7 @@
 <?php
 
 /**
- * This file is part of the Cubiche package.
+ * This file is part of the Cubiche application.
  *
  * Copyright (c) Cubiche
  *

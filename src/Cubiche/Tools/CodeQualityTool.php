@@ -1,7 +1,7 @@
 <?php
 
 /**
- * This file is part of the Cubiche package.
+ * This file is part of the Cubiche application.
  *
  * Copyright (c) Cubiche
  *
@@ -25,8 +25,6 @@ use Symfony\Component\Yaml\Yaml;
  */
 class CodeQualityTool extends Application
 {
-    const CONFIG_FILE = 'quality.yml';
-
     /**
      * @var OutputInterface
      */
@@ -38,18 +36,11 @@ class CodeQualityTool extends Application
     protected $input;
 
     /**
-     * @var array
-     */
-    protected $config;
-
-    /**
      * CodeQualityTool constructor.
      */
     public function __construct()
     {
         parent::__construct('Cubiche Code Quality Tool', '1.0.0');
-
-        $this->config = file_exists(self::CONFIG_FILE) ? Yaml::parse(file_get_contents(self::CONFIG_FILE)) : array();
     }
 
     /**
@@ -130,7 +121,7 @@ class CodeQualityTool extends Application
     {
         $needle = '/(\.php)|(\.inc)$/';
         $succeed = true;
-        $config = $this->getConfig('phplint', array(
+        $config = ConfigUtils::getConfig('phplint', array(
             'triggered_by' => 'php'
         ));
 
@@ -154,7 +145,7 @@ class CodeQualityTool extends Application
     protected function phPmd()
     {
         $succeed = true;
-        $config = $this->getConfig('phpmd', array(
+        $config = ConfigUtils::getConfig('phpmd', array(
             'ruleset' => 'controversial',
             'triggered_by' => 'php'
         ));
@@ -185,7 +176,7 @@ class CodeQualityTool extends Application
      */
     protected function unitTests($suiteName = null)
     {
-        $config = $this->getConfig('test', array(
+        $config = ConfigUtils::getConfig('test', array(
             'suites' => array()
         ));
 
@@ -253,10 +244,10 @@ class CodeQualityTool extends Application
     protected function codeStyle($directory = null)
     {
         $succeed = true;
-        $config = $this->getConfig('phpcsfixer', array(
+        $config = ConfigUtils::getConfig('phpcsfixer', array(
             'fixers' => [
-                '-psr0','eof_ending','indentation','linefeed','lowercase_keywords','trailing_spaces',
-                'short_tag','php_closing_tag','extra_empty_lines','elseif','function_declaration'
+                '-psr0','eof_ending','indentation','linefeed','lowercase_keywords','trailing_spaces', 'short_tag',
+                'php_closing_tag','extra_empty_lines','elseif','function_declaration', '-phpdoc_scalar', '-phpdoc_types'
             ],
             'triggered_by' => 'php'
         ));
@@ -316,7 +307,7 @@ class CodeQualityTool extends Application
     protected function codeStylePsr($directory = null)
     {
         $succeed = true;
-        $config = $this->getConfig('phpcs', array(
+        $config = ConfigUtils::getConfig('phpcs', array(
             'standard' => 'PSR2',
             'triggered_by' => 'php'
         ));
@@ -396,16 +387,5 @@ class CodeQualityTool extends Application
         if (symlink($symlinkName, $symlinkTarget) === false) {
             throw new \Exception('Error occured when trying to create a symlink.');
         }
-    }
-
-    /**
-     * @param string $task
-     * @param array  $defaults
-     *
-     * @return array|mixed
-     */
-    private function getConfig($task, array $defaults = array())
-    {
-        return isset($this->config[$task]) ? $this->config[$task] : $defaults;
     }
 }
